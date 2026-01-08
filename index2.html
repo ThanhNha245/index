@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bé Khám Phá Thiên Nhiên - Đa Nền Tảng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sky-light: #e0f2fe;
+            --sky-dark: #7dd3fc;
+            --sun-yellow: #fbbf24;
+            --primary-blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #475569;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-viewport {
+            width: 100vw;
+            height: 100vh;
+            max-width: 1920px;
+            max-height: 1080px;
+            background: linear-gradient(180deg, var(--sky-light) 0%, #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+        }
+
+        .cloud-bg {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.2;
+            pointer-events: none;
+            animation: move linear infinite;
+        }
+        @keyframes move {
+            from { left: -150px; }
+            to { left: 105%; }
+        }
+
+        #menu-screen {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .menu-card {
+            background: white;
+            padding: clamp(2rem, 5vw, 4rem);
+            border-radius: 4rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .level-btn {
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: clamp(1rem, 2vh, 1.5rem);
+            border-radius: 2rem;
+            font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+            font-weight: 800;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .level-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .lvl-1 { background: linear-gradient(to right, #22c55e, #16a34a); }
+        .lvl-2 { background: linear-gradient(to right, #f59e0b, #d97706); }
+        .lvl-3 { background: linear-gradient(to right, #ec4899, #db2777); }
+
+        .game-canvas {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: clamp(4px, 1vw, 8px) solid white;
+            border-radius: 3rem;
+            width: 90%;
+            max-width: 1100px;
+            height: 55vh;
+            padding: clamp(1rem, 3vw, 2rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .counting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1.5rem);
+            width: 100%;
+            height: 100%;
+        }
+
+        .nature-box {
+            background: white;
+            border-radius: clamp(1rem, 2vw, 2rem);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 4px solid #f1f5f9;
+            min-height: 100px;
+        }
+        .nature-box.counted { background: #f0fdf4; border-color: #86efac; }
+
+        .icon-item { font-size: clamp(3.5rem, 10vh, 7rem); user-select: none; }
+        .order-tag {
+            position: absolute;
+            top: -10px; left: -10px;
+            width: clamp(35px, 4vw, 55px); 
+            height: clamp(35px, 4vw, 55px);
+            background: var(--sun-yellow);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(1rem, 2vw, 1.5rem); font-weight: bold; border: 4px solid white;
+            transform: scale(0); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .counted .order-tag { transform: scale(1); }
+
+        .number-btn {
+            width: clamp(60px, 8vw, 95px); 
+            height: clamp(60px, 8vw, 95px);
+            border-radius: 1.5rem;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 900;
+            background: white;
+            border: none;
+            border-bottom: clamp(4px, 1vh, 8px) solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .number-btn:active { transform: translateY(4px); border-bottom-width: 4px; }
+
+        #win-modal {
+            position: absolute; inset: 0;
+            background: rgba(30, 58, 138, 0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 200; backdrop-filter: blur(8px);
+            padding: 20px;
+        }
+
+        .pulse-icon {
+            font-size: clamp(6rem, 20vh, 12rem);
+            transition: transform 0.2s;
+        }
+
+        .icon-active {
+            transform: scale(1.3);
+            filter: drop-shadow(0 0 30px rgba(251, 191, 36, 0.8));
+        }
+
+        .playing-indicator {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ec4899;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: none;
+            z-index: 20;
+            white-space: nowrap;
+        }
+
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-viewport">
+        <div id="clouds-container"></div>
+
+        <!-- Menu chính -->
+        <div id="menu-screen">
+            <div class="menu-card">
+                <div class="text-7xl md:text-8xl mb-4">🌤️</div>
+                <h1 class="text-3xl md:text-5xl font-black text-blue-600 mb-8 uppercase">Thiên Nhiên Kỳ Thú</h1>
+                <div class="space-y-4">
+                    <button onclick="selectGame(1)" class="level-btn lvl-1">🔍 ĐẾM HÌNH (1 - 7)</button>
+                    <button onclick="selectGame(2)" class="level-btn lvl-2">🔍 ĐẾM HÌNH (7 - 8)</button>
+                    <button onclick="selectGame(3)" class="level-btn lvl-3">📢 NGHE ÂM THANH</button>
+                </div>
+            </div>
+        </div>
+
+        <header class="text-center z-10 px-4 pt-8">
+            <div class="bg-blue-600 text-white px-8 py-3 rounded-2xl shadow-[0_6px_0_#1e40af] inline-block mb-4">
+                <h1 class="text-xl md:text-3xl font-black uppercase">Thiên Nhiên Kỳ Thú</h1>
+            </div>
+            <div id="task-desc" class="text-lg md:text-2xl font-bold text-blue-800 bg-white/70 px-8 py-3 rounded-full shadow-sm border-2 border-white max-w-[90%] mx-auto flex items-center justify-center min-h-[60px]">
+                Bé hãy sẵn sàng nhé!
+            </div>
+            <button onclick="showMenu()" class="absolute top-8 left-8 bg-white/90 p-4 rounded-full shadow-lg hover:scale-110 transition-all border-none cursor-pointer">
+                <span class="text-2xl">🏠</span>
+            </button>
+        </header>
+
+        <main class="flex-1 flex flex-col items-center justify-center relative">
+            <div id="game-grid" class="game-canvas">
+                <div id="indicator" class="playing-indicator">🔊 Đang phát âm thanh...</div>
+            </div>
+            <div id="hint-text" class="mt-6 text-lg md:text-2xl font-bold text-gray-500 italic px-4 text-center min-h-[40px]">...</div>
+        </main>
+
+        <footer class="flex flex-col items-center justify-center gap-6 pb-12">
+            <div id="number-strip" class="flex flex-wrap justify-center gap-3 px-4"></div>
+            <div id="signal-footer" class="hidden">
+                <button id="btn-play-sound" onclick="playCurrentSignalSequence()" class="px-12 py-4 bg-pink-500 text-white text-xl font-black rounded-3xl shadow-[0_6px_0_#be185d] active:translate-y-1 transition-all border-none cursor-pointer">PHÁT LẠI ÂM THANH 🎵</button>
+            </div>
+        </footer>
+
+        <!-- Modal Thắng -->
+        <div id="win-modal">
+            <div class="bg-white rounded-[3rem] p-8 md:p-16 text-center shadow-2xl border-[8px] border-yellow-300 w-full max-w-[600px]">
+                <div id="win-visual" class="flex justify-center flex-wrap gap-4 mb-8"></div>
+                <h2 class="text-3xl md:text-5xl font-black text-green-600 mb-4">GIỎI QUÁ!</h2>
+                <p id="win-msg" class="text-lg md:text-2xl font-bold text-gray-600 mb-10"></p>
+                <button onclick="startNewRound()" class="w-full py-5 bg-orange-500 text-white text-2xl font-black rounded-3xl shadow-[0_8px_0_#c2410c] active:translate-y-2 active:shadow-none transition-all border-none cursor-pointer">
+                    TIẾP TỤC
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Thêm confetti vui vẻ khi thắng (tùy chọn, rất đáng thêm!)
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+        document.head.appendChild(script);
+
+        const Sound = {
+            ctx: null,
+            init() { 
+                if(!this.ctx || this.ctx.state === 'suspended') {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                return this.ctx;
+            },
+            
+            playWin() {
+                const ctx = this.init();
+                const frequencies = [523.25, 659.25, 783.99, 1046.50];
+                frequencies.forEach((f, i) => {
+                    const o = ctx.createOscillator(), g = ctx.createGain();
+                    o.frequency.setValueAtTime(f, ctx.currentTime + i*0.1);
+                    g.gain.setValueAtTime(0, ctx.currentTime + i*0.1);
+                    g.gain.linearRampToValueAtTime(0.1, ctx.currentTime + i*0.1 + 0.05);
+                    g.gain.linearRampToValueAtTime(0, ctx.currentTime + i*0.1 + 0.3);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(ctx.currentTime + i*0.1); o.stop(ctx.currentTime + i*0.1 + 0.3);
+                });
+                // Confetti khi thắng
+                if(typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            },
+
+            playNatureSound(type) {
+                const ctx = this.init();
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                const now = ctx.currentTime;
+                
+                switch(type) {
+                    case '🌞': // Ông mặt trời - âm sáng ấm
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(800, now);
+                        o.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+                        break;
+                    case '☁️': // Đám mây - âm nhẹ, gió
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(200, now);
+                        o.frequency.linearRampToValueAtTime(300, now + 0.4);
+                        break;
+                    case '🟡': // Tia nắng
+                        o.type = 'square';
+                        o.frequency.setValueAtTime(1100, now);
+                        break;
+                    case '💧': // Giọt mưa
+                        o.frequency.setValueAtTime(900, now);
+                        o.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+                        break;
+                    case '⭐': // Ngôi sao lấp lánh
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(1800, now);
+                        o.frequency.linearRampToValueAtTime(2000, now + 0.1);
+                        o.frequency.linearRampToValueAtTime(1800, now + 0.2);
+                        break;
+                    case '❄️': // Bông tuyết
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(600, now);
+                        o.frequency.linearRampToValueAtTime(800, now + 0.3);
+                        break;
+                    case '🌈': // Cầu vồng - âm vui tươi, nhiều tần số
+                        o.type = 'sawtooth';
+                        o.frequency.setValueAtTime(400, now);
+                        o.frequency.linearRampToValueAtTime(800, now + 0.1);
+                        o.frequency.linearRampToValueAtTime(400, now + 0.3);
+                        break;
+                    default: 
+                        o.frequency.setValueAtTime(440, now);
+                }
+                
+                g.gain.setValueAtTime(0.2, now);
+                g.gain.linearRampToValueAtTime(0, now + 0.4);
+                o.connect(g); g.connect(ctx.destination);
+                o.start(); o.stop(now + 0.4);
+            },
+
+            playWrong() {
+                const ctx = this.init();
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.type = 'sawtooth';
+                o.frequency.setValueAtTime(120, ctx.currentTime);
+                g.gain.setValueAtTime(0.1, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+                o.connect(g); g.connect(ctx.destination);
+                o.start(); o.stop(ctx.currentTime + 0.2);
+            }
+        };
+
+        // Danh sách biểu tượng mới
+        const NATURE_DATA = [
+            { icon: '🌞', name: 'ông mặt trời' },
+            { icon: '☁️', name: 'đám mây' },
+            { icon: '🟡', name: 'tia nắng' },
+            { icon: '💧', name: 'giọt mưa' },
+            { icon: '⭐', name: 'ngôi sao' },
+            { icon: '❄️', name: 'bông tuyết' },
+            { icon: '🌈', name: 'sắc cầu vồng' }
+        ];
+
+        let targetNumber = 0, currentLevel = 1, currentType = null;
+        let gameMode = 1, isPlaying = false, count = 0;
+
+        function selectGame(mode) {
+            Sound.init();
+            gameMode = mode;
+            if(mode === 1) currentLevel = 1;
+            else if(mode === 2) { gameMode = 1; currentLevel = 2; }
+            document.getElementById('menu-screen').style.display = 'none';
+            document.querySelector('header button').style.display = 'block'; // hiện nút home
+            startNewRound();
+        }
+
+        function showMenu() { 
+            document.getElementById('menu-screen').style.display = 'flex';
+            document.querySelector('header button').style.display = 'none'; // ẩn nút home khi ở menu
+        }
+
+        function startNewRound() {
+            document.getElementById('win-modal').style.display = 'none';
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '<div id="indicator" class="playing-indicator">🔊 Đang phát âm thanh...</div>';
+            initNumberButtons();
+
+            if (gameMode === 1) {
+                document.getElementById('signal-footer').classList.add('hidden');
+                initCountingGame();
+            } else {
+                document.getElementById('signal-footer').classList.remove('hidden');
+                initSignalGame();
+            }
+        }
+
+        function initCountingGame() {
+            const grid = document.getElementById('game-grid');
+            grid.className = "game-canvas counting-grid";
+            targetNumber = currentLevel === 1 ? Math.floor(Math.random() * 6) + 1 : Math.floor(Math.random() * 2) + 7;
+            currentType = NATURE_DATA[Math.floor(Math.random() * NATURE_DATA.length)];
+            
+            document.getElementById('task-desc').innerText = `Bé hãy đếm xem có bao nhiêu ${currentType.name}?`;
+            document.getElementById('hint-text').innerText = "Chạm vào hình để đếm nhé!";
+            
+            count = 0;
+            // Tạo các ô - có thể có thêm vài ô trống để bé tập trung hơn, nhưng giữ đơn giản
+            for(let i = 0; i < targetNumber; i++) {
+                const box = document.createElement('div');
+                box.className = 'nature-box';
+                box.innerHTML = `<div class="icon-item">${currentType.icon}</div><div class="order-tag"></div>`;
+                box.onclick = () => {
+                    if(!box.classList.contains('counted')) {
+                        count++;
+                        box.classList.add('counted');
+                        box.querySelector('.order-tag').innerText = count;
+                        Sound.playNatureSound(currentType.icon);
+                        document.getElementById('hint-text').innerText = `Đã đếm được: ${count}`;
+                    }
+                };
+                grid.appendChild(box);
+            }
+        }
+
+        function initSignalGame() {
+            const grid = document.getElementById('game-grid');
+            grid.className = "game-canvas flex-col";
+            targetNumber = Math.floor(Math.random() * 7) + 1;
+            currentType = NATURE_DATA[Math.floor(Math.random() * NATURE_DATA.length)];
+            
+            document.getElementById('task-desc').innerText = "Lắng nghe và chọn số lần âm thanh nhé!";
+            document.getElementById('hint-text').innerText = "Bé hãy lắng nghe thật kỹ nhé! 🎧";
+            grid.innerHTML += `
+                <div class="text-center">
+                    <div id="signal-icon" class="pulse-icon">${currentType.icon}</div>
+                    <div class="mt-8 text-2xl md:text-4xl font-bold text-blue-600">🎧 Bé nghe thấy mấy lần?</div>
+                </div>
+            `;
+            setTimeout(playCurrentSignalSequence, 800);
+        }
+
+        async function playCurrentSignalSequence() {
+            if(isPlaying) return;
+            isPlaying = true;
+            const indicator = document.getElementById('indicator');
+            const icon = document.getElementById('signal-icon');
+            if(indicator) indicator.style.display = 'block';
+
+            for(let i = 0; i < targetNumber; i++) {
+                Sound.playNatureSound(currentType.icon);
+                if(icon) icon.classList.add('icon-active');
+                await new Promise(r => setTimeout(r, 600));
+                if(icon) icon.classList.remove('icon-active');
+                await new Promise(r => setTimeout(r, 400));
+            }
+            isPlaying = false;
+            if(indicator) indicator.style.display = 'none';
+        }
+
+        function initNumberButtons() {
+            const strip = document.getElementById('number-strip');
+            strip.innerHTML = '';
+            for(let i = 1; i <= 8; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.innerText = i;
+                btn.onclick = () => {
+                    if(isPlaying) return;
+                    if(i === targetNumber) { revealAnswer(); }
+                    else { 
+                        Sound.playWrong(); 
+                        btn.classList.add('shake'); 
+                        setTimeout(() => btn.classList.remove('shake'), 500); 
+                    }
+                };
+                strip.appendChild(btn);
+            }
+        }
+
+        function revealAnswer() {
+            Sound.playWin();
+            const winVisual = document.getElementById('win-visual');
+            winVisual.innerHTML = '';
+            for(let i = 0; i < targetNumber; i++) {
+                const s = document.createElement('span');
+                s.className = "text-4xl md:text-6xl";
+                s.innerText = currentType.icon;
+                winVisual.appendChild(s);
+            }
+            document.getElementById('win-msg').innerText = `Chính xác! Có tất cả ${targetNumber} ${currentType.name}.`;
+            document.getElementById('win-modal').style.display = 'flex';
+        }
+
+        function initClouds() {
+            const container = document.getElementById('clouds-container');
+            for(let i = 0; i < 8; i++) { // tăng số mây cho vui
+                const c = document.createElement('div');
+                c.className = 'cloud-bg';
+                c.innerText = '☁️';
+                c.style.top = (Math.random() * 60) + '%';
+                c.style.animationDuration = (20 + Math.random() * 30) + 's';
+                c.style.animationDelay = (Math.random() * -30) + 's';
+                c.style.fontSize = (4 + Math.random() * 3) + 'rem';
+                container.appendChild(c);
+            }
+        }
+
+        window.onload = initClouds;
+    </script>
+</body>
+</html>
