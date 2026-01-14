@@ -114,7 +114,7 @@
 
         .counting-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
             gap: clamp(0.5rem, 1.5vw, 1.5rem);
             width: 100%;
             height: 100%;
@@ -130,30 +130,30 @@
             cursor: pointer;
             transition: all 0.3s;
             border: 4px solid #f1f5f9;
-            min-height: 100px;
+            min-height: 80px;
         }
         .nature-box.counted { background: #f0fdf4; border-color: #86efac; }
 
-        .icon-item { font-size: clamp(3.5rem, 10vh, 7rem); user-select: none; }
+        .icon-item { font-size: clamp(2.5rem, 8vh, 6rem); user-select: none; }
         .order-tag {
             position: absolute;
             top: -10px; left: -10px;
-            width: clamp(35px, 4vw, 55px); 
-            height: clamp(35px, 4vw, 55px);
+            width: clamp(30px, 4vw, 50px); 
+            height: clamp(30px, 4vw, 50px);
             background: var(--sun-yellow);
             color: white;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: clamp(1rem, 2vw, 1.5rem); font-weight: bold; border: 4px solid white;
+            font-size: clamp(0.9rem, 2vw, 1.3rem); font-weight: bold; border: 4px solid white;
             transform: scale(0); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .counted .order-tag { transform: scale(1); }
 
         .number-btn {
-            width: clamp(60px, 8vw, 95px); 
-            height: clamp(60px, 8vw, 95px);
+            width: clamp(55px, 8vw, 90px); 
+            height: clamp(55px, 8vw, 90px);
             border-radius: 1.5rem;
-            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-size: clamp(1.4rem, 4vw, 2.8rem);
             font-weight: 900;
             background: white;
             border: none;
@@ -173,7 +173,7 @@
         }
 
         .pulse-icon {
-            font-size: clamp(6rem, 20vh, 12rem);
+            font-size: clamp(5rem, 18vh, 10rem);
             transition: transform 0.2s;
         }
 
@@ -210,15 +210,14 @@
     <div id="game-viewport">
         <div id="clouds-container"></div>
 
-        <!-- Menu chính -->
         <div id="menu-screen">
             <div class="menu-card">
                 <div class="text-7xl md:text-8xl mb-4">🌤️</div>
                 <h1 class="text-3xl md:text-5xl font-black text-blue-600 mb-8 uppercase">Thiên Nhiên Kỳ Thú</h1>
                 <div class="space-y-4">
-                    <button onclick="selectGame(1)" class="level-btn lvl-1">🔍 ĐẾM HÌNH (1 - 7)</button>
+                    <button onclick="selectGame(1)" class="level-btn lvl-1">🔍 ĐẾM HÌNH (1 - 6)</button>
                     <button onclick="selectGame(2)" class="level-btn lvl-2">🔍 ĐẾM HÌNH (7 - 8)</button>
-                    <button onclick="selectGame(3)" class="level-btn lvl-3">📢 NGHE ÂM THANH</button>
+                    <button onclick="selectGame(3)" class="level-btn lvl-3">📢 NGHE ÂM THANH (1 - 8)</button>
                 </div>
             </div>
         </div>
@@ -249,7 +248,6 @@
             </div>
         </footer>
 
-        <!-- Modal Thắng -->
         <div id="win-modal">
             <div class="bg-white rounded-[3rem] p-8 md:p-16 text-center shadow-2xl border-[8px] border-yellow-300 w-full max-w-[600px]">
                 <div id="win-visual" class="flex justify-center flex-wrap gap-4 mb-8"></div>
@@ -263,7 +261,6 @@
     </div>
 
     <script>
-        // Thêm confetti vui vẻ khi thắng (tùy chọn, rất đáng thêm!)
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
         document.head.appendChild(script);
@@ -289,13 +286,8 @@
                     o.connect(g); g.connect(ctx.destination);
                     o.start(ctx.currentTime + i*0.1); o.stop(ctx.currentTime + i*0.1 + 0.3);
                 });
-                // Confetti khi thắng
                 if(typeof confetti === 'function') {
-                    confetti({
-                        particleCount: 150,
-                        spread: 70,
-                        origin: { y: 0.6 }
-                    });
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }
             },
 
@@ -305,43 +297,14 @@
                 const now = ctx.currentTime;
                 
                 switch(type) {
-                    case '🌞': // Ông mặt trời - âm sáng ấm
-                        o.type = 'sine';
-                        o.frequency.setValueAtTime(800, now);
-                        o.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
-                        break;
-                    case '☁️': // Đám mây - âm nhẹ, gió
-                        o.type = 'triangle';
-                        o.frequency.setValueAtTime(200, now);
-                        o.frequency.linearRampToValueAtTime(300, now + 0.4);
-                        break;
-                    case '🟡': // Tia nắng
-                        o.type = 'square';
-                        o.frequency.setValueAtTime(1100, now);
-                        break;
-                    case '💧': // Giọt mưa
-                        o.frequency.setValueAtTime(900, now);
-                        o.frequency.exponentialRampToValueAtTime(300, now + 0.2);
-                        break;
-                    case '⭐': // Ngôi sao lấp lánh
-                        o.type = 'sine';
-                        o.frequency.setValueAtTime(1800, now);
-                        o.frequency.linearRampToValueAtTime(2000, now + 0.1);
-                        o.frequency.linearRampToValueAtTime(1800, now + 0.2);
-                        break;
-                    case '❄️': // Bông tuyết
-                        o.type = 'sine';
-                        o.frequency.setValueAtTime(600, now);
-                        o.frequency.linearRampToValueAtTime(800, now + 0.3);
-                        break;
-                    case '🌈': // Cầu vồng - âm vui tươi, nhiều tần số
-                        o.type = 'sawtooth';
-                        o.frequency.setValueAtTime(400, now);
-                        o.frequency.linearRampToValueAtTime(800, now + 0.1);
-                        o.frequency.linearRampToValueAtTime(400, now + 0.3);
-                        break;
-                    default: 
-                        o.frequency.setValueAtTime(440, now);
+                    case '🌞': o.type = 'sine'; o.frequency.setValueAtTime(800, now); o.frequency.exponentialRampToValueAtTime(1200, now + 0.3); break;
+                    case '☁️': o.type = 'triangle'; o.frequency.setValueAtTime(200, now); o.frequency.linearRampToValueAtTime(300, now + 0.4); break;
+                    case '🟡': o.type = 'square'; o.frequency.setValueAtTime(1100, now); break;
+                    case '💧': o.frequency.setValueAtTime(900, now); o.frequency.exponentialRampToValueAtTime(300, now + 0.2); break;
+                    case '⭐': o.type = 'sine'; o.frequency.setValueAtTime(1800, now); o.frequency.linearRampToValueAtTime(2000, now + 0.1); o.frequency.linearRampToValueAtTime(1800, now + 0.2); break;
+                    case '❄️': o.type = 'sine'; o.frequency.setValueAtTime(600, now); o.frequency.linearRampToValueAtTime(800, now + 0.3); break;
+                    case '🌈': o.type = 'sawtooth'; o.frequency.setValueAtTime(400, now); o.frequency.linearRampToValueAtTime(800, now + 0.1); o.frequency.linearRampToValueAtTime(400, now + 0.3); break;
+                    default: o.frequency.setValueAtTime(440, now);
                 }
                 
                 g.gain.setValueAtTime(0.2, now);
@@ -362,7 +325,6 @@
             }
         };
 
-        // Danh sách biểu tượng mới
         const NATURE_DATA = [
             { icon: '🌞', name: 'ông mặt trời' },
             { icon: '☁️', name: 'đám mây' },
@@ -376,19 +338,41 @@
         let targetNumber = 0, currentLevel = 1, currentType = null;
         let gameMode = 1, isPlaying = false, count = 0;
 
+        /**
+         * Hàm lấy số ngẫu nhiên linh hoạt
+         * mode 1: 1-6 (tỉ lệ đều)
+         * mode 2: 7-8 (ưu tiên 8 một chút nhưng vẫn ra 7)
+         * mode 3: 1-8 (ưu tiên 8 mạnh hơn)
+         */
+        function getSmartRandom(level) {
+            if (level === 1) {
+                // Chỉ ra từ 1 đến 6
+                return Math.floor(Math.random() * 6) + 1;
+            } else if (level === 2) {
+                // Chỉ ra 7 hoặc 8. Tỉ lệ: 7 (40%), 8 (60%)
+                return Math.random() < 0.6 ? 8 : 7;
+            } else {
+                // Dành cho nghe âm thanh (1-8), ưu tiên 8 (khoảng 35% ra 8)
+                if (Math.random() < 0.35) return 8;
+                return Math.floor(Math.random() * 7) + 1;
+            }
+        }
+
         function selectGame(mode) {
             Sound.init();
             gameMode = mode;
             if(mode === 1) currentLevel = 1;
             else if(mode === 2) { gameMode = 1; currentLevel = 2; }
+            else { currentLevel = 3; } // Game Mode 3 (Signal)
+            
             document.getElementById('menu-screen').style.display = 'none';
-            document.querySelector('header button').style.display = 'block'; // hiện nút home
+            document.querySelector('header button').style.display = 'block';
             startNewRound();
         }
 
         function showMenu() { 
             document.getElementById('menu-screen').style.display = 'flex';
-            document.querySelector('header button').style.display = 'none'; // ẩn nút home khi ở menu
+            document.querySelector('header button').style.display = 'none';
         }
 
         function startNewRound() {
@@ -409,14 +393,14 @@
         function initCountingGame() {
             const grid = document.getElementById('game-grid');
             grid.className = "game-canvas counting-grid";
-            targetNumber = currentLevel === 1 ? Math.floor(Math.random() * 6) + 1 : Math.floor(Math.random() * 2) + 7;
-            currentType = NATURE_DATA[Math.floor(Math.random() * NATURE_DATA.length)];
             
+            targetNumber = getSmartRandom(currentLevel);
+
+            currentType = NATURE_DATA[Math.floor(Math.random() * NATURE_DATA.length)];
             document.getElementById('task-desc').innerText = `Bé hãy đếm xem có bao nhiêu ${currentType.name}?`;
             document.getElementById('hint-text').innerText = "Chạm vào hình để đếm nhé!";
             
             count = 0;
-            // Tạo các ô - có thể có thêm vài ô trống để bé tập trung hơn, nhưng giữ đơn giản
             for(let i = 0; i < targetNumber; i++) {
                 const box = document.createElement('div');
                 box.className = 'nature-box';
@@ -437,9 +421,10 @@
         function initSignalGame() {
             const grid = document.getElementById('game-grid');
             grid.className = "game-canvas flex-col";
-            targetNumber = Math.floor(Math.random() * 7) + 1;
-            currentType = NATURE_DATA[Math.floor(Math.random() * NATURE_DATA.length)];
             
+            targetNumber = getSmartRandom(3);
+
+            currentType = NATURE_DATA[Math.floor(Math.random() * NATURE_DATA.length)];
             document.getElementById('task-desc').innerText = "Lắng nghe và chọn số lần âm thanh nhé!";
             document.getElementById('hint-text').innerText = "Bé hãy lắng nghe thật kỹ nhé! 🎧";
             grid.innerHTML += `
@@ -505,7 +490,7 @@
 
         function initClouds() {
             const container = document.getElementById('clouds-container');
-            for(let i = 0; i < 8; i++) { // tăng số mây cho vui
+            for(let i = 0; i < 8; i++) {
                 const c = document.createElement('div');
                 c.className = 'cloud-bg';
                 c.innerText = '☁️';
